@@ -2,14 +2,20 @@
 """
 Task: (Digital Reconaisance) || [ ReconDigital || DigiCon]
     1. Isolate data from each block of news (Check)
-    2. find a way to search news blocks bases on zip code (In Progress)
-        (-) Isolate search entry
+    2. find a way to search news blocks based on zip code (check)
+        (-) Isolate search entry based on region (check)
+        (-) Isolate search entry based on categories in list (In Progress)
+     
+     
+    (/\) ADD ERROR HANDLING   
+
     3. Create word search comparison and finder for
         handling words that are similiar.
 
-    4. Check if its legal to scrape from other websites and use
-        data in Web App.
 
+    4. Check if its legal to scrape from other websites and use
+        data in Web App. (In Progress)
+    
     Goal:
         (+) Turn python app into Web application where I can input zip code or current location
             and it displays data on screen pertaining to location.
@@ -19,6 +25,7 @@ Task: (Digital Reconaisance) || [ ReconDigital || DigiCon]
 import urllib3
 import requests
 import re
+import time
 import json
 from bs4 import BeautifulSoup as soup
 
@@ -65,10 +72,12 @@ class DigitalRecon:
     RegionOfStateLinkUrl = []
     NearestRegionsByZip = {}
     State = "US"
+    region_ = "US"
+
     MainSite = "https://patch.com"
 
-    def __init__(self, StateInput):
-        self.State = StateInput
+    # def __init__(self, StateInput):
+    #     self.State = StateInput
 
     def __init__(self):
         pass
@@ -76,17 +85,21 @@ class DigitalRecon:
     def setState(self, state):
         self.State = state
 
+    def setUrl(self, url):
+        self.MainSite = url
+
+    def setRegion(self, regionValue): 
+        self.region_ = regionValue
+
     def getState(self):
         return self.State
 
-    def setUrl(self, url):
-        self.MainSite = url
 
     def getUrl(self):
         return self.MainSite
 
-    def getRegion(self, key):
-        return self.NearestRegionsByZip[key][0], self.NearestRegionsByZip[key][1]
+    def getRegionData(self, key):
+        return self.NearestRegionsByZip[int(key)][0], self.NearestRegionsByZip[int(key)][1]
 
     def ZipCodeLocationSelect(self, zip):
         NearestTownsUrl = "https://patch.com/api_v1/patches.json?limit=8&query={0}&types[]=community&types[]=deals&types[]=national&types[]=seedling&types[]=smallBusiness&types[]=state".format(
@@ -108,8 +121,13 @@ class DigitalRecon:
 
         selection = input("Select Region: ")
         while not selection.isdigit():
-            selection = input("Select Region: ")
-        region, RegionLink = self.getRegion(selection)
+            try:
+                selection = input("Select Region: ")
+            except ValueError as e:
+                print(e)
+                print("Invalid input (e.g. 1,2,3, etc)")
+        region, RegionLink = self.getRegionData(selection)
+        return region, RegionLink
 
     def changeNewsLocation(self):
         location = self.State
@@ -170,7 +188,7 @@ class DigitalRecon:
         dataParse = soup(res.data, 'lxml')
         stateURL = None
         # UrlModified = UrlModifierForRegionSelection(stateLocationUrl)
-        for region in dataParse.find_all('li', class_="styles_CommunitiesBlock__listItem__3gMFv"):
+        for region in dataParse.find_all('li', class_="styles_CommunitiesBlock__listItem__3gMFv"):  # Saves all locations in selected State to a list
             townLocation = region.find("href")
             self.RegionOfStateLinkUrl.append(
                 [i for i in region.a.get("href").split("/")][2])
@@ -227,18 +245,22 @@ class DigitalRecon:
         #     i += 1
         # print(locationLink + "/" + "-".join(topics[2].split(" ")))
 
-    def categoryLinksData(self):  # , link_site):
-        link_site = self.MainSite  # NewsCategoriesSelect()
+    def categoryLinksData(self):  # Convert data to Json
+        link_site = self.MainSite  
         http = urllib3.PoolManager()
         res = http.request("GET", link_site)
         dataParse = soup(res.data, 'lxml')
         print(link_site)
-
+        
+        i = 0
         """finds News Article headlines"""
-        for tags in dataParse.find_all(
+        for tags in dataParse.find_all(30
                 "div", class_="styles_Card__TextContentWrapper__t8XqL styles_Card__TextContentWrapper--Condensed__1lJ_n"):
             tag = tags.find("h2")
-            print(tag.text)
+            if tag is None: 
+                pass
+            else:  
+                print(tag.text)
 
         """finds the time of News Article"""
         # for time_tag in dataParse.find_all("h6", class_="styles_Card__LabelWrapper__27yFr"):
@@ -274,6 +296,12 @@ while True:
         if typeCheck.isdigit():
             digiCon.ZipCodeLocationSelect(userInput)
             digiCon.PrintRegionsNearZipCode()
+            userReg, userLink = digiCon.UserRegion()
+            digiCon.setRegion(userReg)
+            digiCon.setUrl(f"https://patch.com{userLink}")
+            digiCon.categoryLinksData()
+
+            # print(f"{userReg} -> {userLink}")
             # Make selection for regions nearby
         elif typeCheck.isalpha():  # call word comparison
             digiCon.setState(userInput)
@@ -296,4 +324,4 @@ while True:
         # digiCon.PrintRegions()
 
     except ValueError as e:
-        print(e.error)
+        print(e)
