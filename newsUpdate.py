@@ -254,7 +254,7 @@ class DigitalRecon:
         
         i = 0
         """finds News Article headlines"""
-        for tags in dataParse.find_all(30
+        for tags in dataParse.find_all(
                 "div", class_="styles_Card__TextContentWrapper__t8XqL styles_Card__TextContentWrapper--Condensed__1lJ_n"):
             tag = tags.find("h2")
             if tag is None: 
