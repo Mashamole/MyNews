@@ -1,0 +1,3 @@
+Version 1.2: 
+    - Fix Region Selection for Link to display 
+    - Add functionality for retrieving Gas prices & Price of Goods (Bjs, Costco, Sams-Club) in area 
