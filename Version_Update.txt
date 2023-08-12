@@ -1,3 +1,6 @@
 Version 1.2: 
     - Fix Region Selection for Link to display 
+    - Create city to zip code converter 
     - Add functionality for retrieving Gas prices & Price of Goods (Bjs, Costco, Sams-Club) in area 
+        - Gas API: https://www.autoblog.com/08902-gas-prices/ (Create a list of gas prices based on area)
+    
